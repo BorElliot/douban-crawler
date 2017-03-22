@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 class IndexController extends Controller
 {
-	const BASE_URI = "https://www.douban.com/group/shanghaizufang/discussion?start=";
+	const BASE_URI = "http://echo.jsontest.com/key/value/one/two";
 
     public function index()
     {
@@ -31,7 +31,8 @@ class IndexController extends Controller
 			'concurrency' => 5,
 			'fulfilled' => function ($response, $index) {
 				$response = (string)$response->getBody();
-				Log::info("响应成功", ['response' => "", 'index' => $index]);
+                $response_arr = json_decode($response, true);
+				Log::info("响应成功", ['response' => $response_arr, 'index' => $index]);
 			},
 			'rejected' => function($reason, $index) {
 				Log::info('失败', compact('reason', 'index'));
