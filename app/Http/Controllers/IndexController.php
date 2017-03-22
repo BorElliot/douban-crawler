@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 class IndexController extends Controller
 {
-	const BASE_URI = "http://echo.jsontest.com/key/value/one/two";
+	const BASE_URI = "https://jsonplaceholder.typicode.com/comments?postId=1";
 
     public function index()
     {
@@ -19,7 +19,7 @@ class IndexController extends Controller
 		    $uri = self::BASE_URI;
 		    for ($i = 0; $i < $total; $i++) {
 		    	sleep(2);
-		    	$uri .= $i;
+
 		        yield function() use ($client, $uri, $i) {
 		        	Log::info("请求测试", ['index' => $i]);
 		            return $client->getAsync($uri);
