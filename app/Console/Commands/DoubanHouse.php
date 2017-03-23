@@ -5,7 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
+use Illuminate\Support\Facades\Log;
+use GuzzleHttp\Promise;
 
 class DoubanHouse extends Command
 {
@@ -23,6 +24,8 @@ class DoubanHouse extends Command
      */
     protected $description = '爬取豆瓣小组租房信息';
 
+    const CRAWLER_URI = "https://jsonplaceholder.typicode.com/comments?postId=1";
+
     /**
      * Create a new command instance.
      *
@@ -30,6 +33,7 @@ class DoubanHouse extends Command
      */
     public function __construct()
     {
+        $this->client = new Client();
         parent::__construct();
     }
 
@@ -40,27 +44,29 @@ class DoubanHouse extends Command
      */
     public function handle()
     {
+        $this->multipleRequest();
+    }
+
+    public function multipleRequest()
+    {
         $client = new Client();
 
-        $requests = function($total)  use ($client) {
-            $base_uri = "https://www.douban.com/group/shanghaizufang/discussion?start=";
-            for ($i = 0; $i < $total; $i = $i + 25) {
-                $request_url = $base_uri.$i;
-                yield function() use ($client, $request_url) {
-                    $promise = $client->getAsync($request_url);
-                    $promise->then(
-                        function (ResponseInterface $res) {
-                            echo $res->getStatusCode() . "\n";
-                        },
-                        function (RequestException $e) {
-                            echo $e->getMessage() . "\n";
-                            echo $e->getRequest()->getMethod();
-                        }
-                    );
-                };
-            }
-        };
+        for ($i = 0; $i < 10; $i++) {
+            $request = $client->postAsync('http://crawler.local/blogs', ['form_params' => ['title' => 'Hello', 'content' => 'just test!!!']]);
+            $promises[] = $request;
+        }
 
-        $pool = new Pool($client, $requests(1000));
+        $results = Promise\unwrap($promises);
+
+        // Wait for the requests to complete, even if some of them fail
+        $results = Promise\settle($promises);
+
+        $this->info("并发请求完成");
+    }
+
+    public function syncRequest()
+    {
+        $client = new Client();
+        $response = $client->get('http://httpbin.org/get');
     }
 }
